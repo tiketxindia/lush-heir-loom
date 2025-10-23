@@ -13,6 +13,10 @@ import NotFound from "./pages/NotFound";
 import { AdminLogin } from "./pages/admin/AdminLogin";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { MenuManagement } from "./pages/admin/MenuManagement";
+import { HeaderSettings } from "./pages/admin/HeaderSettings";
+import { CarouselManagement } from "./pages/admin/CarouselManagement";
+import { HelpManagement } from "./pages/admin/HelpManagement";
+import { CustomerSignIn } from "./pages/CustomerSignIn";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +38,9 @@ const App = () => (
             <Route path="/sale" element={<ProductListing />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             
+            {/* Customer Authentication */}
+            <Route path="/signin" element={<CustomerSignIn />} />
+            
             {/* Admin Login */}
             <Route path="/admin/login" element={<AdminLogin />} />
             
@@ -45,10 +52,12 @@ const App = () => (
             }>
               <Route index element={<AdminDashboard />} />
               <Route path="menu" element={<MenuManagement />} />
+              <Route path="header-settings" element={<HeaderSettings />} />
+              <Route path="carousel" element={<CarouselManagement />} />
+              <Route path="help" element={<HelpManagement />} />
               <Route path="products" element={<div>Products Management (Coming Soon)</div>} />
               <Route path="users" element={<div>User Management (Coming Soon)</div>} />
               <Route path="analytics" element={<div>Analytics (Coming Soon)</div>} />
-              <Route path="settings" element={<div>Settings (Coming Soon)</div>} />
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

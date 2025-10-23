@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Switch } from '@/components/ui/switch'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Plus, Edit, Trash2, GripVertical } from 'lucide-react'
+import { RealtimeStatusIndicator } from '@/components/RealtimeStatusIndicator'
+import { useAdminCacheInvalidation } from '@/lib/adminCacheIntegration'
 
 export const MenuManagement = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
@@ -15,6 +17,9 @@ export const MenuManagement = () => {
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [error, setError] = useState('')
+
+  // Cache invalidation hook
+  const { invalidateMenuItems, withCacheInvalidation, showSuccess } = useAdminCacheInvalidation();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -50,37 +55,43 @@ export const MenuManagement = () => {
     setError('')
 
     try {
-      if (editingItem) {
-        // Update existing item
-        const { error } = await supabase
-          .from('menu_items')
-          .update({
-            name: formData.name,
-            href: formData.href,
-            order_index: formData.order_index,
-            is_active: formData.is_active,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editingItem.id)
+      await withCacheInvalidation(async () => {
+        if (editingItem) {
+          // Update existing item
+          const { error } = await supabase
+            .from('menu_items')
+            .update({
+              name: formData.name,
+              href: formData.href,
+              order_index: formData.order_index,
+              is_active: formData.is_active,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', editingItem.id)
 
-        if (error) throw error
-      } else {
-        // Create new item
-        const { error } = await supabase
-          .from('menu_items')
-          .insert([{
-            name: formData.name,
-            href: formData.href,
-            order_index: formData.order_index,
-            is_active: formData.is_active
-          }])
+          if (error) throw error
+        } else {
+          // Create new item
+          const { error } = await supabase
+            .from('menu_items')
+            .insert([{
+              name: formData.name,
+              href: formData.href,
+              order_index: formData.order_index,
+              is_active: formData.is_active
+            }])
 
-        if (error) throw error
-      }
+          if (error) throw error
+        }
+      }, 'menu_items', editingItem ? 'Menu item updated' : 'Menu item created');
 
       resetForm()
       setIsDialogOpen(false)
       fetchMenuItems()
+      
+      // Show success message with cache info
+      console.log('✅', showSuccess(editingItem ? 'Menu item updated' : 'Menu item created'));
+      
     } catch (error: any) {
       setError('Failed to save menu item: ' + error.message)
     }
@@ -90,13 +101,17 @@ export const MenuManagement = () => {
     if (!confirm('Are you sure you want to delete this menu item?')) return
 
     try {
-      const { error } = await supabase
-        .from('menu_items')
-        .delete()
-        .eq('id', id)
+      await withCacheInvalidation(async () => {
+        const { error } = await supabase
+          .from('menu_items')
+          .delete()
+          .eq('id', id)
 
-      if (error) throw error
+        if (error) throw error
+      }, 'menu_items', 'Menu item deleted');
+
       fetchMenuItems()
+      console.log('✅', showSuccess('Menu item deleted'));
     } catch (error: any) {
       setError('Failed to delete menu item: ' + error.message)
     }
@@ -125,13 +140,17 @@ export const MenuManagement = () => {
 
   const toggleActive = async (id: number, is_active: boolean) => {
     try {
-      const { error } = await supabase
-        .from('menu_items')
-        .update({ is_active, updated_at: new Date().toISOString() })
-        .eq('id', id)
+      await withCacheInvalidation(async () => {
+        const { error } = await supabase
+          .from('menu_items')
+          .update({ is_active, updated_at: new Date().toISOString() })
+          .eq('id', id)
 
-      if (error) throw error
+        if (error) throw error
+      }, 'menu_items', `Menu item ${is_active ? 'activated' : 'deactivated'}`);
+
       fetchMenuItems()
+      console.log('✅', showSuccess(`Menu item ${is_active ? 'activated' : 'deactivated'}`));
     } catch (error: any) {
       setError('Failed to update menu item: ' + error.message)
     }
@@ -222,6 +241,9 @@ export const MenuManagement = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Real-time Status Indicator */}
+      <RealtimeStatusIndicator />
 
       {error && (
         <Alert variant="destructive">

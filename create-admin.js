@@ -2,10 +2,18 @@
 // Run with: node create-admin.js
 
 import { createClient } from '@supabase/supabase-js'
+import dotenv from 'dotenv'
+
+// Load environment variables
+dotenv.config()
 
 // Using the same configuration as in the app
-const supabaseUrl = 'https://ezfbekvpmzykjniyyrof.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZmJla3ZwbXp5a2puaXl5cm9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEyMDEzODUsImV4cCI6MjA3Njc3NzM4NX0.gmwiEYru9N-GFH0VC7eAJZIiHaMW3Z_8DivQVWyptY4'
+const supabaseUrl = process.env.VITE_SUPABASE_URL
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing required environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY')
+}
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 

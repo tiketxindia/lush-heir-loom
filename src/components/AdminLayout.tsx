@@ -8,7 +8,9 @@ import {
   Menu as MenuIcon, 
   LogOut,
   Home,
-  BarChart3
+  BarChart3,
+  Image as ImageIcon,
+  HelpCircle
 } from 'lucide-react'
 
 export const AdminLayout = () => {
@@ -18,10 +20,12 @@ export const AdminLayout = () => {
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: Home },
     { name: 'Menu Management', href: '/admin/menu', icon: MenuIcon },
+    { name: 'Header Settings', href: '/admin/header-settings', icon: Settings },
+    { name: 'Carousel Images', href: '/admin/carousel', icon: ImageIcon },
+    { name: 'Help Management', href: '/admin/help', icon: HelpCircle },
     { name: 'Products', href: '/admin/products', icon: Package },
     { name: 'Users', href: '/admin/users', icon: Users },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
-    { name: 'Settings', href: '/admin/settings', icon: Settings },
   ]
 
   const handleSignOut = async () => {
