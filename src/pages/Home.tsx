@@ -113,11 +113,11 @@ function Home() {
   });
 
   // Set up cache invalidation for product display data
-  useCacheInvalidation(CACHE_KEYS.PRODUCT_DISPLAY_SECTIONS, () => {
+  useCacheInvalidation('product_display_sections', () => {
     fetchProductDisplayData();
   });
 
-  useCacheInvalidation(CACHE_KEYS.PRODUCT_DISPLAY_ITEMS, () => {
+  useCacheInvalidation('product_display_items', () => {
     fetchProductDisplayData();
   });
 
@@ -179,8 +179,8 @@ function Home() {
   const fetchProductDisplayData = async () => {
     try {
       // Check cache first
-      const sectionsCacheKey = CACHE_KEYS.PRODUCT_DISPLAY_SECTIONS;
-      const itemsCacheKey = CACHE_KEYS.PRODUCT_DISPLAY_ITEMS;
+      const sectionsCacheKey = 'product_display_sections';
+      const itemsCacheKey = 'product_display_items';
       
       const cachedSections = cacheManager.get<ProductDisplaySection[]>(sectionsCacheKey);
       const cachedItems = cacheManager.get<ProductDisplayItem[]>(itemsCacheKey);
