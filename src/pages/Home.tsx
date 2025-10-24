@@ -410,26 +410,26 @@ function Home() {
               {/* Desktop Image (16:5 aspect ratio) */}
               <img
                 src={getCachedImageUrl(currentImage.image_url) || currentImage.image_url}
-                alt={currentImage.title}
+                alt={currentImage.title || 'Carousel Image'}
                 className="absolute inset-0 h-full w-full object-cover object-center hidden md:block"
               />
               {/* Mobile Image (4:3 aspect ratio) */}
               <img
                 src={getCachedImageUrl(currentImage.mobile_image_url) || currentImage.mobile_image_url || getCachedImageUrl(currentImage.image_url) || currentImage.image_url}
-                alt={currentImage.title}
+                alt={currentImage.title || 'Carousel Image'}
                 className="absolute inset-0 h-full w-full object-cover object-center block md:hidden"
               />
               {generateOverlayStyle(currentImage)}
               <div className="relative container h-full flex flex-col justify-end items-center text-center px-4 text-white pb-16 md:pb-20 lg:pb-24">
                 {/* Only show title and subtitle if they exist */}
-                {(currentImage.title.trim() || currentImage.subtitle.trim()) && (
+                {(currentImage.title?.trim() || currentImage.subtitle?.trim()) && (
                   <>
-                    {currentImage.title.trim() && (
+                    {currentImage.title?.trim() && (
                       <h1 className="text-1xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-7xl font-black mb-4 max-w-4xl leading-[0.9] tracking-tight" style={{ fontFamily: "'Futura Condensed Extra Black', 'Futura', 'Arial Black', sans-serif" }}>
                         {currentImage.title}
                       </h1>
                     )}
-                    {currentImage.subtitle.trim() && (
+                    {currentImage.subtitle?.trim() && (
                       <p className="text-xs sm:text-sm md:text-base lg:text-lg mb-6 md:mb-8 max-w-2xl leading-relaxed font-normal">
                         {currentImage.subtitle}
                       </p>
@@ -438,7 +438,7 @@ function Home() {
                 )}
                 
                 {/* Only show button if button text and link exist */}
-                {currentImage.button_text.trim() && currentImage.button_link.trim() && (
+                {currentImage.button_text?.trim() && currentImage.button_link?.trim() && (
                   <Button 
                     size="lg" 
                     className="bg-white text-primary hover:bg-white/90 px-6 md:px-8 py-3 text-sm md:text-base font-semibold rounded-full"

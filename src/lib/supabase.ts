@@ -43,3 +43,26 @@ export interface AdminUser {
   role: 'admin' | 'super_admin'
   created_at: string
 }
+
+export interface CarouselImage {
+  id: number;
+  title?: string; // Optional - for image-only slides
+  subtitle?: string; // Optional - for image-only slides
+  button_text?: string; // Optional - for image-only slides
+  button_link?: string; // Optional - for image-only slides
+  image_url: string;
+  image_path: string;
+  mobile_image_url: string;
+  mobile_image_path: string;
+  order_index: number;
+  is_active: boolean;
+  // Overlay configuration
+  overlay_enabled?: boolean;
+  overlay_type?: 'none' | 'solid' | 'gradient-lr' | 'gradient-tb' | 'gradient-radial';
+  overlay_color?: string;
+  overlay_opacity?: number;
+  overlay_gradient_start?: string;
+  overlay_gradient_end?: string;
+  created_at: string;
+  updated_at: string;
+}

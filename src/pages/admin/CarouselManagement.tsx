@@ -14,16 +14,23 @@ import { Plus, Edit, Trash2, Upload, Image as ImageIcon, Eye, EyeOff, Monitor, S
 
 interface CarouselImage {
   id: number;
-  title: string;
-  subtitle: string;
-  button_text: string;
-  button_link: string;
+  title?: string; // Optional - for image-only slides
+  subtitle?: string; // Optional - for image-only slides
+  button_text?: string; // Optional - for image-only slides
+  button_link?: string; // Optional - for image-only slides
   image_url: string;
   image_path: string;
   mobile_image_url: string;
   mobile_image_path: string;
   order_index: number;
   is_active: boolean;
+  // Overlay configuration
+  overlay_enabled?: boolean;
+  overlay_type?: 'none' | 'solid' | 'gradient-lr' | 'gradient-tb' | 'gradient-radial';
+  overlay_color?: string;
+  overlay_opacity?: number;
+  overlay_gradient_start?: string;
+  overlay_gradient_end?: string;
   created_at: string;
   updated_at: string;
 }
@@ -44,10 +51,17 @@ export const CarouselManagement = () => {
   const [formData, setFormData] = useState({
     title: '',
     subtitle: '',
-    button_text: 'Shop Now',
-    button_link: '/shop',
+    button_text: '',
+    button_link: '',
     order_index: 1,
-    is_active: true
+    is_active: true,
+    // Overlay configuration
+    overlay_enabled: false,
+    overlay_type: 'gradient-lr' as 'none' | 'solid' | 'gradient-lr' | 'gradient-tb' | 'gradient-radial',
+    overlay_color: '#000000',
+    overlay_opacity: 50,
+    overlay_gradient_start: '#000000',
+    overlay_gradient_end: '#000000'
   })
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [selectedMobileFile, setSelectedMobileFile] = useState<File | null>(null)
@@ -135,11 +149,8 @@ export const CarouselManagement = () => {
       return
     }
 
-    // Validate required fields
-    if (!formData.title.trim()) {
-      setError('Title is required')
-      return
-    }
+    // Validate required fields - only image is required now
+    // Title and button are optional for image-only slides
 
     if (!editingImage && !selectedFile) {
       setError('Please select a desktop image')
@@ -148,6 +159,18 @@ export const CarouselManagement = () => {
 
     if (!editingImage && !selectedMobileFile) {
       setError('Please select a mobile image')
+      return
+    }
+
+    // If button text is provided, button link should also be provided
+    if (formData.button_text.trim() && !formData.button_link.trim()) {
+      setError('Button link is required when button text is provided')
+      return
+    }
+
+    // If button link is provided, button text should also be provided
+    if (formData.button_link.trim() && !formData.button_text.trim()) {
+      setError('Button text is required when button link is provided')
       return
     }
 
@@ -172,16 +195,23 @@ export const CarouselManagement = () => {
       }
 
       const imageData = {
-        title: formData.title,
-        subtitle: formData.subtitle,
-        button_text: formData.button_text,
-        button_link: formData.button_link,
+        title: formData.title.trim() || null, // Store empty title as null
+        subtitle: formData.subtitle.trim() || null, // Store empty subtitle as null
+        button_text: formData.button_text.trim() || null, // Store empty button text as null
+        button_link: formData.button_link.trim() || null, // Store empty button link as null
         image_url: imageUrl,
         image_path: imagePath,
         mobile_image_url: mobileImageUrl,
         mobile_image_path: mobileImagePath,
         order_index: formData.order_index,
-        is_active: formData.is_active
+        is_active: formData.is_active,
+        // Overlay configuration
+        overlay_enabled: formData.overlay_enabled,
+        overlay_type: formData.overlay_type,
+        overlay_color: formData.overlay_color,
+        overlay_opacity: formData.overlay_opacity,
+        overlay_gradient_start: formData.overlay_gradient_start,
+        overlay_gradient_end: formData.overlay_gradient_end
       }
 
       if (editingImage) {
@@ -278,10 +308,17 @@ export const CarouselManagement = () => {
     setFormData({
       title: '',
       subtitle: '',
-      button_text: 'Shop Now',
-      button_link: '/shop',
+      button_text: '', // No default value for optional field
+      button_link: '', // No default value for optional field
       order_index: carouselImages.length + 1,
-      is_active: true
+      is_active: true,
+      // Overlay configuration
+      overlay_enabled: false,
+      overlay_type: 'gradient-lr' as 'none' | 'solid' | 'gradient-lr' | 'gradient-tb' | 'gradient-radial',
+      overlay_color: '#000000',
+      overlay_opacity: 50,
+      overlay_gradient_start: '#000000',
+      overlay_gradient_end: '#000000'
     })
     setSelectedFile(null)
     setSelectedMobileFile(null)
@@ -295,12 +332,19 @@ export const CarouselManagement = () => {
   const openEditDialog = (image: CarouselImage) => {
     setEditingImage(image)
     setFormData({
-      title: image.title,
-      subtitle: image.subtitle,
-      button_text: image.button_text,
-      button_link: image.button_link,
+      title: image.title || '', // Handle null values from database
+      subtitle: image.subtitle || '', // Handle null values from database
+      button_text: image.button_text || '', // Handle null values from database
+      button_link: image.button_link || '', // Handle null values from database
       order_index: image.order_index,
-      is_active: image.is_active
+      is_active: image.is_active,
+      // Overlay configuration with fallbacks
+      overlay_enabled: image.overlay_enabled || false,
+      overlay_type: image.overlay_type || 'gradient-lr',
+      overlay_color: image.overlay_color || '#000000',
+      overlay_opacity: image.overlay_opacity || 50,
+      overlay_gradient_start: image.overlay_gradient_start || '#000000',
+      overlay_gradient_end: image.overlay_gradient_end || '#000000'
     })
     setPreviewUrl(image.image_url)
     setMobilePreviewUrl(image.mobile_image_url || image.image_url) // Fallback to desktop if mobile not set
@@ -482,19 +526,18 @@ export const CarouselManagement = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Title *
+                    Title <span className="text-gray-500 text-xs">(optional - for image-only slides, leave empty)</span>
                   </label>
                   <Input
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="e.g., CRAFTED WITH LOVE"
-                    required
                   />
                 </div>
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Subtitle
+                    Subtitle <span className="text-gray-500 text-xs">(optional)</span>
                   </label>
                   <Textarea
                     value={formData.subtitle}
@@ -506,7 +549,7 @@ export const CarouselManagement = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Button Text
+                    Button Text <span className="text-gray-500 text-xs">(optional)</span>
                   </label>
                   <Input
                     value={formData.button_text}
@@ -517,7 +560,7 @@ export const CarouselManagement = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Button Link
+                    Button Link <span className="text-gray-500 text-xs">(optional)</span>
                   </label>
                   <Input
                     value={formData.button_link}
@@ -547,6 +590,163 @@ export const CarouselManagement = () => {
                   <label className="text-sm font-medium text-gray-700">
                     Active
                   </label>
+                </div>
+              </div>
+
+              {/* Overlay Configuration Section */}
+              <div className="md:col-span-2 border-t pt-4 mt-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                  Overlay Configuration
+                </h3>
+                
+                <div className="space-y-4">
+                  {/* Enable Overlay */}
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      checked={formData.overlay_enabled}
+                      onCheckedChange={(checked) => setFormData({ ...formData, overlay_enabled: checked })}
+                    />
+                    <label className="text-sm font-medium text-gray-700">
+                      Enable Image Overlay
+                    </label>
+                  </div>
+
+                  {formData.overlay_enabled && (
+                    <div className="space-y-4 ml-6 border-l-2 border-blue-100 pl-4">
+                      {/* Overlay Type */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Overlay Type
+                        </label>
+                        <select
+                          value={formData.overlay_type}
+                          onChange={(e) => setFormData({ ...formData, overlay_type: e.target.value as typeof formData.overlay_type })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="none">None</option>
+                          <option value="solid">Solid Color</option>
+                          <option value="gradient-lr">Gradient (Left to Right)</option>
+                          <option value="gradient-tb">Gradient (Top to Bottom)</option>
+                          <option value="gradient-radial">Radial Gradient</option>
+                        </select>
+                      </div>
+
+                      {formData.overlay_type === 'solid' && (
+                        <>
+                          {/* Solid Color */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Overlay Color
+                            </label>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="color"
+                                value={formData.overlay_color}
+                                onChange={(e) => setFormData({ ...formData, overlay_color: e.target.value })}
+                                className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+                              />
+                              <Input
+                                value={formData.overlay_color}
+                                onChange={(e) => setFormData({ ...formData, overlay_color: e.target.value })}
+                                placeholder="#000000"
+                                className="flex-1"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Opacity */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Opacity ({formData.overlay_opacity}%)
+                            </label>
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={formData.overlay_opacity}
+                              onChange={(e) => setFormData({ ...formData, overlay_opacity: parseInt(e.target.value) })}
+                              className="w-full"
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {(formData.overlay_type?.includes('gradient')) && (
+                        <>
+                          {/* Gradient Start Color */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Gradient Start Color
+                            </label>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="color"
+                                value={formData.overlay_gradient_start}
+                                onChange={(e) => setFormData({ ...formData, overlay_gradient_start: e.target.value })}
+                                className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+                              />
+                              <Input
+                                value={formData.overlay_gradient_start}
+                                onChange={(e) => setFormData({ ...formData, overlay_gradient_start: e.target.value })}
+                                placeholder="#000000"
+                                className="flex-1"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Gradient End Color */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Gradient End Color
+                            </label>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="color"
+                                value={formData.overlay_gradient_end}
+                                onChange={(e) => setFormData({ ...formData, overlay_gradient_end: e.target.value })}
+                                className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+                              />
+                              <Input
+                                value={formData.overlay_gradient_end}
+                                onChange={(e) => setFormData({ ...formData, overlay_gradient_end: e.target.value })}
+                                placeholder="#000000"
+                                className="flex-1"
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Preview */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Overlay Preview
+                        </label>
+                        <div className="relative w-full h-20 bg-gray-200 rounded border overflow-hidden">
+                          <div 
+                            className="absolute inset-0"
+                            style={{
+                              background: formData.overlay_type === 'solid' 
+                                ? `${formData.overlay_color}${Math.round(formData.overlay_opacity * 2.55).toString(16).padStart(2, '0')}`
+                                : formData.overlay_type === 'gradient-lr'
+                                ? `linear-gradient(to right, ${formData.overlay_gradient_start}, ${formData.overlay_gradient_end})`
+                                : formData.overlay_type === 'gradient-tb'
+                                ? `linear-gradient(to bottom, ${formData.overlay_gradient_start}, ${formData.overlay_gradient_end})`
+                                : formData.overlay_type === 'gradient-radial'
+                                ? `radial-gradient(circle, ${formData.overlay_gradient_start}, ${formData.overlay_gradient_end})`
+                                : 'transparent'
+                            }}
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-white font-medium text-sm mix-blend-difference">
+                              Sample Text
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -627,7 +827,7 @@ export const CarouselManagement = () => {
                       <div className="space-y-1">
                         <img
                           src={image.image_url}
-                          alt={`${image.title} (Desktop)`}
+                          alt={`${image.title || 'Carousel Image'} (Desktop)`}
                           className="w-24 h-8 object-cover rounded border"
                           style={{ aspectRatio: '16/5' }}
                         />
@@ -638,7 +838,7 @@ export const CarouselManagement = () => {
                       <div className="space-y-1">
                         <img
                           src={image.mobile_image_url || image.image_url}
-                          alt={`${image.title} (Mobile)`}
+                          alt={`${image.title || 'Carousel Image'} (Mobile)`}
                           className="w-16 h-12 object-cover rounded border"
                           style={{ aspectRatio: '4/3' }}
                         />
@@ -647,9 +847,11 @@ export const CarouselManagement = () => {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{image.title}</div>
+                        <div className="font-medium">
+                          {image.title || <span className="text-gray-400 italic">Image-only slide</span>}
+                        </div>
                         <div className="text-sm text-gray-600 truncate max-w-xs">
-                          {image.subtitle}
+                          {image.subtitle || <span className="text-gray-400 text-xs">No subtitle</span>}
                         </div>
                       </div>
                     </TableCell>
